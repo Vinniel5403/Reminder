@@ -1214,7 +1214,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2010696374}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4055d988db4d35f4ea160711eb4789a1, type: 3}
+  m_Script: {fileID: 11500000, guid: 77bf8b600047e664cac8d120762dcd41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   loginButton: {fileID: 1494524224}
@@ -1232,7 +1232,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2010696374}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5911f4b358eb97c44a652a9ed073f79a, type: 3}
+  m_Script: {fileID: 11500000, guid: d9c558472c839504390fba1bc74edd1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
