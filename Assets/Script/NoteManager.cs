@@ -7,20 +7,19 @@ public class NoteManager : MonoBehaviour
 {
     [SerializeField] private TMP_InputField noteInputField;
     [SerializeField] private Button submitButton;
-    [SerializeField] private Button resetButton; // Add reference to reset button
     [SerializeField] private TMP_Text savedNotesText;
+    [SerializeField] private TMP_Dropdown tagDropdown; // Reference to the Tag Dropdown
+    [SerializeField] private NoteHistoryManager noteHistoryManager; // Reference to NoteHistoryManager
     private string csvFilePath;
 
     void Start()
     {
         // Set listener for the submit button
         submitButton.onClick.AddListener(OnSubmitButtonClick);
-        // Set listener for the reset button
-        resetButton.onClick.AddListener(ResetData);
 
         // Set the file path for the CSV file
         csvFilePath = Path.Combine(Application.persistentDataPath, "notes.csv");
-        
+
         // Debug log to console
         Debug.Log("CSV File Path: " + csvFilePath);
 
@@ -39,9 +38,12 @@ public class NoteManager : MonoBehaviour
         // Get the latest emotion from PlayerPrefs
         string latestEmotion = PlayerPrefs.GetString("Emotion", "None");
 
+        // Get selected tag from dropdown
+        string selectedTag = tagDropdown.options[tagDropdown.value].text;
+
         // Save note data in PlayerPrefs
         string savedNotes = PlayerPrefs.GetString("Notes", "");
-        string newNote = dateTime + ", " + noteText + "\n";
+        string newNote = dateTime + ", " + noteText + ", " + latestEmotion + ", " + selectedTag + "\n";
         savedNotes += newNote;
         PlayerPrefs.SetString("Notes", savedNotes);
         PlayerPrefs.Save();
@@ -50,13 +52,18 @@ public class NoteManager : MonoBehaviour
         Debug.Log("Saved note: " + newNote);
 
         // Update the latest note in UI
-        UpdateSavedNotesText(dateTime, noteText, latestEmotion);
+        UpdateSavedNotesText(dateTime, noteText, latestEmotion, selectedTag);
 
         // Save data to CSV
-        SaveToCSV(dateTime, noteText, latestEmotion);
+        SaveToCSV(dateTime, noteText, latestEmotion, selectedTag);
 
         // Clear input field
         noteInputField.text = "";
+
+        // Update Note History Manager
+        noteHistoryManager.LoadNotes();
+        noteHistoryManager.PopulateDropdown();
+        noteHistoryManager.UpdateNoteDisplay();
     }
 
     void LoadNotes()
@@ -69,22 +76,23 @@ public class NoteManager : MonoBehaviour
         string latestNote = notesArray.Length > 0 ? notesArray[notesArray.Length - 1] : "";
 
         // Extract date and note text
-        string[] latestNoteParts = latestNote.Split(new[] { ", " }, 2, System.StringSplitOptions.None);
-        if (latestNoteParts.Length == 2)
+        string[] latestNoteParts = latestNote.Split(new[] { ", " }, System.StringSplitOptions.None);
+        if (latestNoteParts.Length >= 3)
         {
             // Load the latest emotion from PlayerPrefs
-            string latestEmotion = PlayerPrefs.GetString("Emotion", "None");
-            UpdateSavedNotesText(latestNoteParts[0], latestNoteParts[1], latestEmotion);
+            string latestEmotion = latestNoteParts[latestNoteParts.Length - 2];
+            string latestTag = latestNoteParts[latestNoteParts.Length - 1];
+            UpdateSavedNotesText(latestNoteParts[0], latestNoteParts[1], latestEmotion, latestTag);
         }
     }
 
-    void UpdateSavedNotesText(string dateTime, string noteText, string emotion)
+    void UpdateSavedNotesText(string dateTime, string noteText, string emotion, string tag)
     {
-        // Display the latest note along with the emotion
-        savedNotesText.text = $"{dateTime}, {noteText}, {emotion}";
+        // Display the latest note along with the emotion and tag
+        savedNotesText.text = $"{dateTime}, {noteText}, {emotion}, {tag}";
     }
 
-    void SaveToCSV(string dateTime, string noteText, string emotion)
+    void SaveToCSV(string dateTime, string noteText, string emotion, string tag)
     {
         // Check if the directory exists, if not, create it
         string directoryPath = Path.GetDirectoryName(csvFilePath);
@@ -97,28 +105,10 @@ public class NoteManager : MonoBehaviour
         using (StreamWriter writer = new StreamWriter(csvFilePath, true))
         {
             // Write the data to the CSV file
-            writer.WriteLine($"{dateTime}, \"{noteText}\", \"{emotion}\"");
+            writer.WriteLine($"{dateTime}, \"{noteText}\", \"{emotion}\", \"{tag}\"");
         }
 
         // Debug log to console
-        Debug.Log($"Saved to CSV: {dateTime}, {noteText}, {emotion}");
-    }
-
-    void ResetData()
-    {
-        // Clear PlayerPrefs
-        PlayerPrefs.DeleteAll();
-
-        // Clear CSV file content
-        if (File.Exists(csvFilePath))
-        {
-            File.WriteAllText(csvFilePath, string.Empty);
-        }
-
-        // Clear the UI text
-        savedNotesText.text = "";
-
-        // Debug log to console
-        Debug.Log("Data has been reset.");
+        Debug.Log($"Saved to CSV: {dateTime}, {noteText}, {emotion}, {tag}");
     }
 }
